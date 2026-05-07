@@ -1,3 +1,5 @@
+const notificationService = require("../services/notification.service");
+
 const projectService = require("../services/project.service");
 
 const createProject = async (req, res) => {
@@ -55,6 +57,41 @@ const getOrganizationProjects = async (
   }
 };
 
+// const createTask = async (req, res) => {
+//   try {
+//     const { projectId } = req.params;
+
+//     const {
+//       title,
+//       description,
+//       priority,
+//       dueDate,
+//       assignedToId,
+//     } = req.body;
+
+//     const task =
+//       await projectService.createTask(
+//         projectId,
+//         title,
+//         description,
+//         priority,
+//         dueDate,
+//         assignedToId
+//       );
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Task created successfully",
+//       task,
+//     });
+//   } catch (error) {
+//     res.status(400).json({
+//       success: false,
+//       message: error.message,
+//     });
+//   }
+// };
+
 const createTask = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -67,15 +104,43 @@ const createTask = async (req, res) => {
       assignedToId,
     } = req.body;
 
-    const task =
-      await projectService.createTask(
-        projectId,
-        title,
-        description,
-        priority,
-        dueDate,
-        assignedToId
-      );
+    const task = await projectService.createTask(
+      projectId,
+      title,
+      description,
+      priority,
+      dueDate,
+      assignedToId
+    );
+
+    
+     if (assignedToId) {
+      // Save notification in PostgreSQL
+      const notification =
+      await notificationService.createNotification({
+      userId: assignedToId,
+      title: "New Task Assigned",
+      message: `You have been assigned a new task: ${task.title}`,
+      type: "TASK_ASSIGNED",
+    });
+
+    // Real-time socket notification
+    const io = req.app.get("io");
+    const onlineUsers = req.app.get("onlineUsers");
+
+    const receiverSocketId =
+    onlineUsers.get(assignedToId);
+
+    if (receiverSocketId) {
+     io.to(receiverSocketId).emit(
+      "taskAssigned",
+       {
+        notification,
+        task,
+       }
+     );
+    }
+  }
 
     res.status(201).json({
       success: true,

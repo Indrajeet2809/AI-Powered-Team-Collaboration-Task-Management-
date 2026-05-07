@@ -27,6 +27,7 @@ model User {
   memberships   OrganizationMember[]
   teamMemberships TeamMember[]
   assignedTasks   Task[]
+  notifications   Notification[]
 
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
@@ -145,4 +146,19 @@ model Task {
 
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+}
+
+
+model Notification {
+  id        String   @id @default(cuid())
+
+  userId    String
+  title     String
+  message   String
+  type      String
+  isRead    Boolean  @default(false)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }
