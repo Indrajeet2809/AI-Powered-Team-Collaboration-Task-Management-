@@ -6,6 +6,7 @@ const authRoutes = require("./routes/auth.routes");
 const organizationRoutes = require("./routes/organization.routes");
 const teamRoutes = require("./routes/team.routes");
 const projectRoutes = require("./routes/project.routes");
+const errorMiddleware = require("./middlewares/error.middleware"); // for error handling
 
 const app = express();
 
@@ -30,5 +31,7 @@ app.get("/", (req, res) => {
     message: "CollabAI Backend Running",
   });
 });
+
+app.use(errorMiddleware);
 
 module.exports = app;

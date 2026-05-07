@@ -4,13 +4,22 @@ const authController = require("../controllers/auth.controller");
 
 const router = express.Router();
 
+//use for validation
+const validate = require("../middlewares/validate.middleware");
+
+// Use for validation
+const {
+  registerSchema,
+  loginSchema,
+} = require("../validations/auth.validation");
+
 const {
   isAuthenticated,
 } = require("../middlewares/auth.middleware");
 
-router.post("/register", authController.register);
+router.post("/register", validate(registerSchema),  authController.register);
 
-router.post("/login", authController.login);
+router.post("/login", validate(loginSchema), authController.login);
 
 router.get("/me",isAuthenticated,authController.getMe);
 
