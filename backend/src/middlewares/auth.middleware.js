@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const prisma = require("../config/prisma");
 
 const isAuthenticated = async (req, res, next) => {
   try {
@@ -38,7 +39,38 @@ const isSuperAdmin = (req, res, next) => {
   next();
 };
 
+const isOrganizationAdmin = async (req, res, next) => {
+  try {
+    const { organizationId } = req.params;
+
+    const membership =
+      await prisma.organizationMember.findFirst({
+        where: {
+          userId: req.user.id,
+          organizationId,
+          role: "ORG_ADMIN",
+        },
+      });
+
+    if (!membership) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Access denied. Organization Admin only.",
+      });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   isAuthenticated,
   isSuperAdmin,
+  isOrganizationAdmin,
 };
