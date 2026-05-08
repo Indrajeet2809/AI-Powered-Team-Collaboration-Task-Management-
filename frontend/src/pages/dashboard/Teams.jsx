@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import API from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Teams() {
+  const { user } = useAuth();
+
   const [organizations, setOrganizations] = useState([]);
   const [selectedOrgId, setSelectedOrgId] = useState("");
   const [teams, setTeams] = useState([]);
@@ -37,6 +40,18 @@ export default function Teams() {
   useEffect(() => {
     fetchTeams(selectedOrgId);
   }, [selectedOrgId]);
+
+  const selectedOrg = organizations.find(
+    (org) => org.id === selectedOrgId
+  );
+
+  const selectedMembership = selectedOrg?.members?.find(
+    (member) => member.userId === user?.id
+  );
+
+  const canManage =
+    selectedMembership?.role === "ORG_ADMIN" ||
+    selectedMembership?.role === "MANAGER";
 
   const handleCreateTeam = async (e) => {
     e.preventDefault();
@@ -83,32 +98,40 @@ export default function Teams() {
         </select>
       </div>
 
-      <form
-        onSubmit={handleCreateTeam}
-        className="bg-white rounded-2xl border shadow-sm p-6 mb-8 grid grid-cols-1 md:grid-cols-3 gap-4"
-      >
-        <input
-          placeholder="Team name"
-          value={form.name}
-          onChange={(e) =>
-            setForm({ ...form, name: e.target.value })
-          }
-          className="border rounded-xl px-4 py-3 outline-none"
-        />
+      {canManage && (
+        <form
+          onSubmit={handleCreateTeam}
+          className="bg-white rounded-2xl border shadow-sm p-6 mb-8 grid grid-cols-1 md:grid-cols-3 gap-4"
+        >
+          <input
+            placeholder="Team name"
+            value={form.name}
+            onChange={(e) =>
+              setForm({ ...form, name: e.target.value })
+            }
+            className="border rounded-xl px-4 py-3 outline-none"
+          />
 
-        <input
-          placeholder="Description"
-          value={form.description}
-          onChange={(e) =>
-            setForm({ ...form, description: e.target.value })
-          }
-          className="border rounded-xl px-4 py-3 outline-none"
-        />
+          <input
+            placeholder="Description"
+            value={form.description}
+            onChange={(e) =>
+              setForm({ ...form, description: e.target.value })
+            }
+            className="border rounded-xl px-4 py-3 outline-none"
+          />
 
-        <button className="bg-slate-900 text-white rounded-xl font-semibold">
-          Create Team
-        </button>
-      </form>
+          <button className="bg-slate-900 text-white rounded-xl font-semibold">
+            Create Team
+          </button>
+        </form>
+      )}
+
+      {!canManage && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-2xl p-4 mb-8">
+          You have member access. You can view teams, but you cannot create new teams.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {teams.map((team) => (

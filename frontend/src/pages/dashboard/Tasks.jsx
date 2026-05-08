@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import API from "../../api/axios";
+import { useAuth } from "../../context/AuthContext";
 
 const columns = ["TODO", "IN_PROGRESS", "REVIEW", "COMPLETED"];
 
 export default function Tasks() {
+  const { user } = useAuth();
   const [organizations, setOrganizations] = useState([]);
   const [projects, setProjects] = useState([]);
   const [tasks, setTasks] = useState([]);
@@ -80,6 +82,18 @@ export default function Tasks() {
   useEffect(() => {
     fetchTasks(selectedProjectId);
   }, [selectedProjectId]);
+
+  const selectedOrg = organizations.find(
+  (org) => org.id === selectedOrgId
+);
+
+const selectedMembership = selectedOrg?.members?.find(
+  (member) => member.userId === user?.id
+);
+
+const canManage =
+  selectedMembership?.role === "ORG_ADMIN" ||
+  selectedMembership?.role === "MANAGER";
 
   const handleCreateTask = async (e) => {
     e.preventDefault();
@@ -161,59 +175,68 @@ export default function Tasks() {
         </div>
       </div>
 
-      <form
-        onSubmit={handleCreateTask}
-        className="bg-white rounded-2xl border shadow-sm p-6 mb-8 grid grid-cols-1 md:grid-cols-4 gap-4"
-      >
-        <input
-          placeholder="Task title"
-          value={form.title}
-          onChange={(e) =>
-            setForm({ ...form, title: e.target.value })
-          }
-          className="border rounded-xl px-4 py-3 outline-none"
-        />
+   {canManage && (
+  <form
+    onSubmit={handleCreateTask}
+    className="bg-white rounded-2xl border shadow-sm p-6 mb-8 grid grid-cols-1 md:grid-cols-5 gap-4"
+  >
+    <input
+      placeholder="Task title"
+      value={form.title}
+      onChange={(e) =>
+        setForm({ ...form, title: e.target.value })
+      }
+      className="border rounded-xl px-4 py-3 outline-none"
+    />
 
-        <input
-          placeholder="Description"
-          value={form.description}
-          onChange={(e) =>
-            setForm({ ...form, description: e.target.value })
-          }
-          className="border rounded-xl px-4 py-3 outline-none"
-        />
+    <input
+      placeholder="Description"
+      value={form.description}
+      onChange={(e) =>
+        setForm({ ...form, description: e.target.value })
+      }
+      className="border rounded-xl px-4 py-3 outline-none"
+    />
 
-        <select
-          value={form.priority}
-          onChange={(e) =>
-            setForm({ ...form, priority: e.target.value })
-          }
-          className="border rounded-xl px-4 py-3 outline-none"
-        >
-          <option value="LOW">LOW</option>
-          <option value="MEDIUM">MEDIUM</option>
-          <option value="HIGH">HIGH</option>
-        </select>
+    <select
+      value={form.priority}
+      onChange={(e) =>
+        setForm({ ...form, priority: e.target.value })
+      }
+      className="border rounded-xl px-4 py-3 outline-none"
+    >
+      <option value="LOW">LOW</option>
+      <option value="MEDIUM">MEDIUM</option>
+      <option value="HIGH">HIGH</option>
+    </select>
 
-        <select
-             value={form.assignedToId}
-             onChange={(e) =>
-             setForm({ ...form, assignedToId: e.target.value })
-             }
-             className="border rounded-xl px-4 py-3 outline-none"
-        >
-        <option value="">Unassigned</option>
+    <select
+      value={form.assignedToId}
+      onChange={(e) =>
+        setForm({ ...form, assignedToId: e.target.value })
+      }
+      className="border rounded-xl px-4 py-3 outline-none"
+    >
+      <option value="">Unassigned</option>
 
-         {members.map((member) => (
-         <option key={member.id} value={member.userId}>
-         {member.user?.name || member.user?.email}
-         </option>
-        ))}
-        </select>
-        <button className="bg-slate-900 text-white rounded-xl font-semibold">
-          Create Task
-        </button>
-      </form>
+      {members.map((member) => (
+        <option key={member.id} value={member.userId}>
+          {member.user?.name || member.user?.email}
+        </option>
+      ))}
+    </select>
+
+    <button className="bg-slate-900 text-white rounded-xl font-semibold">
+      Create Task
+    </button>
+  </form>
+)}
+
+{!canManage && (
+  <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-2xl p-4 mb-8">
+    You have member access. You can view and update assigned tasks, but you cannot create tasks.
+  </div>
+)}
 
       <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {columns.map((status) => (

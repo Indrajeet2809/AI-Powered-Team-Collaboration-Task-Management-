@@ -90,9 +90,51 @@ const deleteOrganization = async (req, res) => {
   }
 };
 
+const addMemberToOrganization = async (req, res) => {
+  try {
+    const { organizationId } = req.params;
+    const { name, email, password, role } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email and password are required",
+      });
+    }
+
+    const member =
+      await organizationService.addMemberToOrganization(
+        organizationId,
+        name,
+        email,
+        password,
+        role
+      );
+
+    await activityService.createActivityLog({
+      userId: req.user.id,
+      organizationId,
+      action: "ADD_MEMBER",
+      description: `${req.user.email} added ${email} as ${role || "MEMBER"}`,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Member added successfully",
+      member,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createOrganization,
   getMyOrganizations,
   getAllOrganizations,
   deleteOrganization,
+  addMemberToOrganization,
 };

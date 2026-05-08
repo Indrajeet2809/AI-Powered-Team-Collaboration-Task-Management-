@@ -4,6 +4,7 @@ const organizationController = require("../controllers/organization.controller")
 const {
   isAuthenticated,
   isSuperAdmin,
+  isOrganizationAdmin,
 } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
@@ -32,6 +33,13 @@ router.delete(
   isAuthenticated,
   isSuperAdmin,
   organizationController.deleteOrganization
+);
+
+router.post(
+  "/:organizationId/members",
+  isAuthenticated,
+  isOrganizationAdmin,
+  organizationController.addMemberToOrganization
 );
 
 module.exports = router;

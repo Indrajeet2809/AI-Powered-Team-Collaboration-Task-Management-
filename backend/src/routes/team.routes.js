@@ -5,6 +5,7 @@ const teamController = require("../controllers/team.controller");
 const {
   isAuthenticated,
   isOrganizationAdmin,
+  isOrganizationManagerOrAdmin,
 } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
@@ -26,6 +27,13 @@ router.post(
   "/:teamId/members",
   isAuthenticated,
   teamController.addMemberToTeam
+);
+
+router.post(
+  "/organization/:organizationId",
+  isAuthenticated,
+  isOrganizationManagerOrAdmin,
+  teamController.createTeam
 );
 
 module.exports = router;

@@ -5,6 +5,7 @@ const projectController = require("../controllers/project.controller");
 const {
   isAuthenticated,
   isOrganizationAdmin,
+  isOrganizationManagerOrAdmin,
 } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
@@ -38,6 +39,13 @@ router.patch(
   "/tasks/:taskId/status",
   isAuthenticated,
   projectController.updateTaskStatus
+);
+
+router.post(
+  "/organization/:organizationId",
+  isAuthenticated,
+  isOrganizationManagerOrAdmin,
+  projectController.createProject
 );
 
 module.exports = router;
