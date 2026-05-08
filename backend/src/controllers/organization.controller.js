@@ -1,4 +1,5 @@
 const organizationService = require("../services/organization.service");
+const activityService = require("../services/activity.service");
 
 const createOrganization = async (req, res) => {
   try {
@@ -16,6 +17,13 @@ const createOrganization = async (req, res) => {
       name,
       description
     );
+
+    await activityService.createActivityLog({
+    userId: req.user.id,
+    organizationId: organization.id,
+    action: "ADD_MEMBER",
+    description: `${req.user.email} created organization "${organization.name}"`,
+    });
 
     res.status(201).json({
       success: true,

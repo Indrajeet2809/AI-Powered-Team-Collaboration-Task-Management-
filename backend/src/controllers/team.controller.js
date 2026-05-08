@@ -1,4 +1,5 @@
 const teamService = require("../services/team.service");
+const activityService = require("../services/activity.service");
 
 const createTeam = async (req, res) => {
   try {
@@ -11,6 +12,13 @@ const createTeam = async (req, res) => {
       name,
       description
     );
+
+    await activityService.createActivityLog({
+    userId: req.user.id,
+    organizationId,
+    action: "CREATE_TEAM",
+    description: `${req.user.email} created team "${team.name}"`,
+    });
 
     res.status(201).json({
       success: true,

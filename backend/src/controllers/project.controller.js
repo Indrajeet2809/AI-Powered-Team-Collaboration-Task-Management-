@@ -216,6 +216,22 @@ const updateTaskStatus = async (
         taskId,
         status
       );
+        
+      const taskWithProject = await prisma.task.findUnique({
+      where: {
+      id: taskId,
+      },
+      include: {
+       project: true,
+       },
+    });
+
+    await activityService.createActivityLog({
+    userId: req.user.id,
+    organizationId: taskWithProject.project.organizationId,
+    action: "UPDATE_TASK",
+    description: `${req.user.email} updated task status to "${status}"`,
+   });
 
     res.status(200).json({
       success: true,
