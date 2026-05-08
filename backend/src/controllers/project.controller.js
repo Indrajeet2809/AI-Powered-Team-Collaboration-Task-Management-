@@ -1,3 +1,6 @@
+const prisma = require("../config/prisma");
+const activityService = require("../services/activity.service");
+
 const notificationService = require("../services/notification.service");
 
 const projectService = require("../services/project.service");
@@ -19,6 +22,13 @@ const createProject = async (req, res) => {
         name,
         description
       );
+
+      await activityService.createActivityLog({
+       userId: req.user.id,
+       organizationId,
+       action: "CREATE_PROJECT",
+       description: `${req.user.email} created project "${project.name}"`,
+      });
 
     res.status(201).json({
       success: true,
@@ -112,6 +122,19 @@ const createTask = async (req, res) => {
       dueDate,
       assignedToId
     );
+
+     const project = await prisma.project.findUnique({
+      where: {
+        id: projectId,
+        },
+      });
+
+      await activityService.createActivityLog({
+      userId: req.user.id,
+      organizationId: project.organizationId,
+      action: "CREATE_TASK",
+      description: `${req.user.email} created task "${task.title}"`,
+      });
 
     
      if (assignedToId) {

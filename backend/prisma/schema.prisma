@@ -28,6 +28,7 @@ model User {
   teamMemberships TeamMember[]
   assignedTasks   Task[]
   notifications   Notification[]
+  activityLogs    ActivityLog[]
 
   createdAt     DateTime             @default(now())
   updatedAt     DateTime             @updatedAt
@@ -41,6 +42,7 @@ model Organization {
   members     OrganizationMember[]
   teams       Team[]
   projects    Project[]
+  activityLogs ActivityLog[]
 
   createdAt   DateTime               @default(now())
   updatedAt   DateTime               @updatedAt
@@ -161,4 +163,28 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+}
+
+enum ActivityType {
+  CREATE_PROJECT
+  CREATE_TASK
+  UPDATE_TASK
+  CREATE_TEAM
+  ADD_MEMBER
+}
+
+model ActivityLog {
+  id             String        @id @default(cuid())
+
+  userId         String
+  organizationId String?
+
+  action         ActivityType
+  description    String
+
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime      @default(now())
 }

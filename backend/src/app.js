@@ -8,6 +8,7 @@ const teamRoutes = require("./routes/team.routes");
 const projectRoutes = require("./routes/project.routes");
 const errorMiddleware = require("./middlewares/error.middleware"); // for error handling
 const notificationRoutes = require("./routes/notification.routes");
+const activityRoutes = require("./routes/activity.routes");
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/organizations", organizationRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/activities", activityRoutes);
 
 app.get("/", (req, res) => {
   res.json({
