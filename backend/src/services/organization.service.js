@@ -20,6 +20,20 @@ const createOrganization = async (userId, name, description) => {
   return organization;
 };
 
+// const getMyOrganizations = async (userId) => {
+//   return await prisma.organization.findMany({
+//     where: {
+//       members: {
+//         some: {
+//           userId,
+//         },
+//       },
+//     },
+//     include: {
+//       members: true,
+//     },
+//   });
+// };
 const getMyOrganizations = async (userId) => {
   return await prisma.organization.findMany({
     where: {
@@ -30,7 +44,19 @@ const getMyOrganizations = async (userId) => {
       },
     },
     include: {
-      members: true,
+      members: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+      teams: true,
+      projects: true,
     },
   });
 };

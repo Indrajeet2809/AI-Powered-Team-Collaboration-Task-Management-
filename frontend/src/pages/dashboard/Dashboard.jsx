@@ -1,45 +1,96 @@
-import { Activity, Building2, FolderKanban, ListTodo, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  Activity,
+  Building2,
+  FolderKanban,
+  ListTodo,
+  Users,
+} from "lucide-react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import { useAuth } from "../../context/AuthContext";
-import { useEffect, useState } from "react";
 import API from "../../api/axios";
 
 export default function Dashboard() {
+  const { user } = useAuth();
 
+  const [organizations, setOrganizations] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [activities, setActivities] = useState([]);
 
-const { user } = useAuth();
-
-const [organizations, setOrganizations] = useState([]);
-const [notifications, setNotifications] = useState([]);
-
- const stats = [
-  { title: "Organizations", value: organizations.length, icon: Building2 },
-  { title: "Teams", value: 0, icon: Users },
-  { title: "Projects", value: 0, icon: FolderKanban },
-  { title: "Notifications", value: notifications.length, icon: ListTodo },
-];
-
-useEffect(() => {
   const fetchDashboardData = async () => {
     try {
       const orgRes = await API.get("/organizations/my");
       const notiRes = await API.get("/notifications");
 
-      setOrganizations(orgRes.data.organizations || []);
+      const orgs = orgRes.data.organizations || [];
+
+      setOrganizations(orgs);
       setNotifications(notiRes.data.notifications || []);
+
+      if (orgs.length > 0) {
+        const activityRes = await API.get(
+          `/activities/organization/${orgs[0].id}`
+        );
+
+        setActivities(activityRes.data.activities || []);
+      }
     } catch (error) {
       console.log(error.response?.data?.message);
     }
   };
 
-  fetchDashboardData();
-}, []);
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const totalTeams = organizations.reduce(
+    (total, org) => total + (org.teams?.length || 0),
+    0
+  );
+
+  const totalProjects = organizations.reduce(
+    (total, org) => total + (org.projects?.length || 0),
+    0
+  );
+
+  const totalTasks = organizations.reduce((total, org) => {
+    const projectTasks =
+      org.projects?.reduce(
+        (sum, project) => sum + (project.tasks?.length || 0),
+        0
+      ) || 0;
+
+    return total + projectTasks;
+  }, 0);
+
+  const stats = [
+    {
+      title: "Organizations",
+      value: organizations.length,
+      icon: Building2,
+    },
+    {
+      title: "Teams",
+      value: totalTeams,
+      icon: Users,
+    },
+    {
+      title: "Projects",
+      value: totalProjects,
+      icon: FolderKanban,
+    },
+    {
+      title: "Notifications",
+      value: notifications.length,
+      icon: ListTodo,
+    },
+  ];
 
   return (
     <DashboardLayout>
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">
-         Welcome back, {user?.name || "User"} 👋
+          Welcome back, {user?.name || "User"} 👋
         </h1>
         <p className="text-slate-500 mt-2">
           Here is your team collaboration overview.
@@ -57,8 +108,12 @@ useEffect(() => {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-slate-500 text-sm">{item.title}</p>
-                  <h2 className="text-3xl font-bold mt-2">{item.value}</h2>
+                  <p className="text-slate-500 text-sm">
+                    {item.title}
+                  </p>
+                  <h2 className="text-3xl font-bold mt-2">
+                    {item.value}
+                  </h2>
                 </div>
 
                 <div className="w-12 h-12 rounded-xl bg-slate-900 text-white flex items-center justify-center">
@@ -78,25 +133,46 @@ useEffect(() => {
           </div>
 
           <div className="space-y-4">
-            <p className="text-slate-600">Indrajeet created project “School Management System”</p>
-            <p className="text-slate-600">Rahul was assigned task “Build Login API”</p>
-            <p className="text-slate-600">Backend Team was created</p>
+            {activities.length === 0 ? (
+              <p className="text-slate-500">
+                No recent activities found.
+              </p>
+            ) : (
+              activities.slice(0, 5).map((activity) => (
+                <p
+                  key={activity.id}
+                  className="text-slate-600"
+                >
+                  {activity.description}
+                </p>
+              ))
+            )}
           </div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-          <h2 className="text-xl font-bold mb-5">My Tasks</h2>
+          <h2 className="text-xl font-bold mb-5">Notifications</h2>
 
           <div className="space-y-4">
-            <div className="p-4 rounded-xl bg-slate-50 border">
-              <h3 className="font-semibold">Build Organization API</h3>
-              <p className="text-sm text-slate-500 mt-1">Priority: HIGH • Status: COMPLETED</p>
-            </div>
-
-            <div className="p-4 rounded-xl bg-slate-50 border">
-              <h3 className="font-semibold">Create Frontend Dashboard</h3>
-              <p className="text-sm text-slate-500 mt-1">Priority: MEDIUM • Status: IN_PROGRESS</p>
-            </div>
+            {notifications.length === 0 ? (
+              <p className="text-slate-500">
+                No notifications found.
+              </p>
+            ) : (
+              notifications.slice(0, 5).map((notification) => (
+                <div
+                  key={notification.id}
+                  className="p-4 rounded-xl bg-slate-50 border"
+                >
+                  <h3 className="font-semibold">
+                    {notification.title}
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {notification.message}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
