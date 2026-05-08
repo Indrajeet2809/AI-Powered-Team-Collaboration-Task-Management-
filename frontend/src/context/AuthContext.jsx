@@ -7,6 +7,11 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const logout = async () => {
+  await API.post("/auth/logout");
+  setUser(null);
+  };
+
   const fetchMe = async () => {
     try {
       const res = await API.get("/auth/me");
@@ -23,7 +28,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading, fetchMe }}>
+    <AuthContext.Provider value={{ user, setUser, loading, fetchMe, logout }}>
       {children}
     </AuthContext.Provider>
   );
