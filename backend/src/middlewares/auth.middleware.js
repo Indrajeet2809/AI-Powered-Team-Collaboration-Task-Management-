@@ -107,9 +107,53 @@ const isOrganizationManagerOrAdmin = async (req, res, next) => {
   }
 };
 
+const canManageProjectByProjectId = async (req, res, next) => {
+  try {
+    const { projectId } = req.params;
+
+    const project = await prisma.project.findUnique({
+      where: {
+        id: projectId,
+      },
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
+    }
+
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        userId: req.user.id,
+        organizationId: project.organizationId,
+        role: {
+          in: ["ORG_ADMIN", "MANAGER"],
+        },
+      },
+    });
+
+    if (!membership) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. Admin or Manager only.",
+      });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   isAuthenticated,
   isSuperAdmin,
   isOrganizationAdmin,
   isOrganizationManagerOrAdmin,
+  canManageProjectByProjectId,
 };

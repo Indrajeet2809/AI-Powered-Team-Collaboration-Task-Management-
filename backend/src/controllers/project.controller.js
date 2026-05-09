@@ -202,36 +202,66 @@ const getProjectTasks = async (
   }
 };
 
-const updateTaskStatus = async (
-  req,
-  res
-) => {
+const updateTaskStatus = async (req, res) => {
   try {
     const { taskId } = req.params;
-
     const { status } = req.body;
 
-    const task =
-      await projectService.updateTaskStatus(
-        taskId,
-        status
-      );
-        
-      const taskWithProject = await prisma.task.findUnique({
+    const existingTask = await prisma.task.findUnique({
       where: {
-      id: taskId,
+        id: taskId,
       },
       include: {
-       project: true,
-       },
+        project: true,
+      },
     });
 
+    if (!existingTask) {
+      return res.status(404).json({
+        success: false,
+        message: "Task not found",
+      });
+    }
+
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        userId: req.user.id,
+        organizationId: existingTask.project.organizationId,
+      },
+    });
+
+    if (!membership) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not a member of this organization",
+      });
+    }
+
+    const isAdminOrManager =
+      membership.role === "ORG_ADMIN" ||
+      membership.role === "MANAGER";
+
+    const isAssignedUser =
+      existingTask.assignedToId === req.user.id;
+
+    if (!isAdminOrManager && !isAssignedUser) {
+      return res.status(403).json({
+        success: false,
+        message: "You can update only your assigned task",
+      });
+    }
+
+    const task = await projectService.updateTaskStatus(
+      taskId,
+      status
+    );
+
     await activityService.createActivityLog({
-    userId: req.user.id,
-    organizationId: taskWithProject.project.organizationId,
-    action: "UPDATE_TASK",
-    description: `${req.user.email} updated task status to "${status}"`,
-   });
+      userId: req.user.id,
+      organizationId: existingTask.project.organizationId,
+      action: "UPDATE_TASK",
+      description: `${req.user.email} updated task "${existingTask.title}" status to "${status}"`,
+    });
 
     res.status(200).json({
       success: true,

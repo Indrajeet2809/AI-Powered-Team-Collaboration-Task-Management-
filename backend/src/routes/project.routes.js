@@ -6,6 +6,7 @@ const {
   isAuthenticated,
   isOrganizationAdmin,
   isOrganizationManagerOrAdmin,
+  canManageProjectByProjectId,
 } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
@@ -46,6 +47,13 @@ router.post(
   isAuthenticated,
   isOrganizationManagerOrAdmin,
   projectController.createProject
+);
+
+router.post(
+  "/:projectId/tasks",
+  isAuthenticated,
+  canManageProjectByProjectId,
+  projectController.createTask
 );
 
 module.exports = router;
