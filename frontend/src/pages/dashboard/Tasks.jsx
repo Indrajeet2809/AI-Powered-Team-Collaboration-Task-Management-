@@ -70,10 +70,6 @@ export default function Tasks() {
     fetchOrganizations();
   }, []);
 
-//   useEffect(() => {
-//     fetchProjects(selectedOrgId);
-//   }, [selectedOrgId]);
-
     useEffect(() => {
     fetchProjects(selectedOrgId);
     fetchMembers(selectedOrgId);
@@ -238,13 +234,16 @@ const canManage =
   </div>
 )}
 
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
         {columns.map((status) => (
           <div
             key={status}
-            className="bg-white rounded-2xl border shadow-sm p-5 min-h-[400px]"
+            className="bg-white/90 rounded-2xl border border-slate-200 shadow-sm p-4 min-h-[240px]"
           >
-            <h2 className="font-bold mb-5">{status}</h2>
+            {/* <h2 className="font-bold mb-5">{status}</h2> */}
+            <h2 className="text-sm font-bold mb-4 text-slate-600 uppercase tracking-wide">
+              {status.replace("_", " ")}
+            </h2>
 
             <div className="space-y-4">
               {tasks
@@ -252,7 +251,7 @@ const canManage =
                 .map((task) => (
                   <div
                     key={task.id}
-                    className="border rounded-xl p-4 bg-slate-50"
+                    className="border border-slate-200 rounded-xl p-4 bg-white shadow-sm hover:shadow-md transition"
                   >
                     <h3 className="font-semibold">{task.title}</h3>
 
