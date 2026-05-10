@@ -4,6 +4,9 @@ A full-stack SaaS-style collaboration platform inspired by tools like Jira, Trel
 
 This platform allows organizations to manage teams, projects, tasks, notifications, and activity logs in a secure multi-user environment with role-based access control.
 
+![alt text](image.png)
+
+![alt text](image-1.png)
 ---
 
 # 🚀 Features
@@ -20,7 +23,7 @@ This platform allows organizations to manage teams, projects, tasks, notificatio
 ---
 
 # 👥 Organization Management
-
+![alt text](image-2.png)
 ## ORG_ADMIN / MANAGER
 
 Can:
@@ -63,7 +66,7 @@ Cannot:
 * Assign organization roles
 
 ## Teams
-
+![alt text](image-3.png)
 * Create teams inside organizations
 * View teams and members
 
