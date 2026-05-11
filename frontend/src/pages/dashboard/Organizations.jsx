@@ -51,7 +51,12 @@ export default function Organizations() {
     (member) => member.userId === user?.id
   );
 
-  const canManage =
+  const isSuperAdmin = user?.platformRole === "SUPER_ADMIN";
+
+  const canCreateOrganization = true;
+
+  const canManageMembers =
+    isSuperAdmin ||
     selectedMembership?.role === "ORG_ADMIN" ||
     selectedMembership?.role === "MANAGER";
 
@@ -137,13 +142,19 @@ export default function Organizations() {
             Your Role
           </p>
           <h2 className="mt-2 text-2xl font-black text-emerald-600">
-            {selectedMembership?.role || "USER"}
+            {isSuperAdmin
+              ? "SUPER_ADMIN"
+              : selectedMembership?.role || "USER"}
           </h2>
         </div>
       </div>
 
-      {canManage && (
-        <div className="mb-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
+      <div
+        className={`mb-8 grid grid-cols-1 gap-6 ${
+          canManageMembers ? "xl:grid-cols-2" : "xl:grid-cols-1"
+        }`}
+      >
+        {canCreateOrganization && (
           <form
             onSubmit={handleCreateOrganization}
             className="rounded-3xl bg-white/90 p-6 shadow-lg border border-white/70"
@@ -190,7 +201,9 @@ export default function Organizations() {
               </button>
             </div>
           </form>
+        )}
 
+        {canManageMembers && (
           <form
             onSubmit={handleAddMember}
             className="rounded-3xl bg-white/90 p-6 shadow-lg border border-white/70"
@@ -268,8 +281,8 @@ export default function Organizations() {
               </button>
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="mb-8 rounded-3xl bg-white/90 p-6 shadow-lg border border-white/70">
         <label className="block text-sm font-bold text-slate-700 mb-2">
@@ -281,11 +294,15 @@ export default function Organizations() {
           onChange={(e) => setSelectedOrgId(e.target.value)}
           className="w-full rounded-2xl border border-slate-200 bg-white px-5 py-4 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
         >
-          {organizations.map((org) => (
-            <option key={org.id} value={org.id}>
-              {org.name}
-            </option>
-          ))}
+          {organizations.length === 0 ? (
+            <option value="">No organization found</option>
+          ) : (
+            organizations.map((org) => (
+              <option key={org.id} value={org.id}>
+                {org.name}
+              </option>
+            ))
+          )}
         </select>
       </div>
 
@@ -300,24 +317,32 @@ export default function Organizations() {
             </h2>
           </div>
 
-          <div className="space-y-4">
-            {organizations.map((org) => (
-              <div
-                key={org.id}
-                className="rounded-2xl border border-slate-100 bg-slate-50 p-5"
-              >
-                <h3 className="font-black text-slate-900">{org.name}</h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  {org.description || "No description"}
-                </p>
+          {organizations.length === 0 ? (
+            <p className="rounded-2xl bg-slate-50 p-4 text-slate-500">
+              No organizations found. Create your first organization above.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {organizations.map((org) => (
+                <div
+                  key={org.id}
+                  className="rounded-2xl border border-slate-100 bg-slate-50 p-5"
+                >
+                  <h3 className="font-black text-slate-900">
+                    {org.name}
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {org.description || "No description"}
+                  </p>
 
-                <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-blue-600">
-                  <Users size={16} />
-                  Members: {org.members?.length || 0}
+                  <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-blue-600">
+                    <Users size={16} />
+                    Members: {org.members?.length || 0}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="rounded-3xl bg-white/90 p-6 shadow-lg border border-white/70">
